@@ -1,19 +1,20 @@
 def buildJar() {
-    echo "building the application..."
+    echo 'Building the application ...'
+    echo "executing pipeline from branch $BRANCH_NAME"
     sh 'mvn package'
-} 
+    
+}
 
 def buildImage() {
-    echo "building the docker image..."
-    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-        sh 'docker build -t nanajanashia/demo-app:jma-2.0 .'
+    echo 'Building the docker image...'
+    withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable:'PASS', usernameVariable:'USER')]) {
+        sh 'docker build -t uzair102/u_repo:jma-2.1 .'
         sh "echo $PASS | docker login -u $USER --password-stdin"
-        sh 'docker push nanajanashia/demo-app:jma-2.0'
+        sh 'docker push uzair102/u_repo:jma-2.1'
     }
-} 
+}
 
-def deployApp() {
-    echo 'deploying the application...'
-} 
-
+def deploy() {
+      echo 'Deploying the application...'
+}
 return this
