@@ -19,21 +19,20 @@ pipeline {
         }
         stage('test') {
             steps {
-
                 script {
-                    gv.buildjar()
+                    gv.test()
                 }
 
             }
         }
         stage('build jar') {
-            steps {
-                when {
+            when {
                     expression {
                         BRANCH_NAME == 'master'
                     }
                 }
-
+            steps {
+                
                 script {
                     gv.buildjar()
                 }
@@ -41,12 +40,13 @@ pipeline {
             }
         }
         stage('build image') {
-            steps {
-                when {
+            when {
                     expression {
                         BRANCH_NAME == 'master'
                     }
                 }
+            steps {
+                
                 script {
                     gv.buildImage()
                     
