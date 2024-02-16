@@ -1,8 +1,11 @@
+def test() {
+    echo "executing pipeline fron branch $BRANCH_NAME"
+    echo 'running tests'
+}
 def buildJar() {
     echo 'Building the application ...'
-    echo "executing pipeline from branch $BRANCH_NAME"
     sh 'mvn package'
-    
+
 }
 
 def buildImage() {
