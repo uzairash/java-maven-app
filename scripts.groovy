@@ -2,6 +2,7 @@ def buildJar() {
     echo 'Building the application ...'
     echo "executing pipeline fron branch $BRANCH_NAME"
     sh 'mvn package'
+    
 }
 
 def buildImage() {
