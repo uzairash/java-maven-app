@@ -21,7 +21,7 @@ pipeline {
             steps {
 
                 script {
-                    gv.buildjar()
+                    gv.test()
                 }
 
             }
