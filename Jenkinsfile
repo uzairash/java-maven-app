@@ -1,55 +1,31 @@
 #!/usr/bin/env groovy
-def gv 
 
 pipeline {
-    
-    agent any
+    agent none
     tools {
-        maven 'maven-3.9'
+        maven 'maven 3.9'
     }
     stages {
-
-        stage('init') {
-            steps {
-                script {
-                    echo "hello world Paji"
-                    gv = load "scripts.groovy"
-                }
-
-            }
-        }
-        stage('test') {
-            steps {
-                script {
-                    gv.test()
-                }
-
-            }
-        }
         stage('build jar') {
-            when {
-                    expression {
-                        BRANCH_NAME == 'master'
-                    }
-                }
             steps {
-                
+
                 script {
-                    gv.buildjar()
+
+                    echo 'Building the application ...'
+                    sh 'mvn package'
                 }
 
             }
         }
         stage('build image') {
-            when {
-                    expression {
-                        BRANCH_NAME == 'master'
-                    }
-                }
             steps {
-                
                 script {
-                    gv.buildImage()
+                    echo 'Building the docker image...'
+                    withCredentials([usernamePassword(withCredentialsId: 'docker-hub-repo'), passwordVariable:'PASS',usernameVariable:'USER']) {
+                        sh 'docker build -t uzair102/u_repo:jma-2.0 .'
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh 'docker push uzair102/u_repo:jma-2.0'
+                    }
                     
                 }
             }
@@ -57,9 +33,16 @@ pipeline {
         stage('deploy') {
             steps {
                 script {
-                    gv.deploy()
+                    echo 'deploying docker image to EC2...'
+                    def dockerComposecmd = "docker-compose -f docker-compose.yaml up"
+                
+                    sshagent(['ec2-server-key']) {
+                        sh "scp docker-compose.yaml ec2-user@3.111.144.185"
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@3.111.144.185 ${dockerComposecmd}"
+                    }
                 }
             }
         }
     }
 }
+
