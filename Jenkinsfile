@@ -1,36 +1,32 @@
 #!/usr/bin/env groovy
 
-library identifier: 'jenkins-shared-library@master', retriever: modernSCM(
-    [$class: 'GitSCMSource',
-     remote: 'https://github.com/uzairash/java-maven-app.git',
-     credentialsId: 'github-credentials'
-    ]
-)
-
 pipeline {
-    agent any
+    agent none
     tools {
-        maven 'maven-3.9'
-    }
-    environment {
-        IMAGE_NAME = 'uzair102/u_repo:java-maven-app-2.1'
+        maven 'maven 3.9'
     }
     stages {
-        stage('build app') {
+        stage('build jar') {
             steps {
-               script {
-                  echo 'building application jar...'
-                  buildJar()
-               }
+
+                script {
+
+                    echo 'Building the application ...'
+                    sh 'mvn package'
+                }
+
             }
         }
         stage('build image') {
             steps {
                 script {
-                   echo 'building docker image...'
-                   buildImage(env.IMAGE_NAME)
-                   dockerLogin()
-                   dockerPush(env.IMAGE_NAME)
+                    echo 'Building the docker image...'
+                    withCredentials([usernamePassword(withCredentialsId: 'docker-hub-repo'), passwordVariable:'PASS',usernameVariable:'USER']) {
+                        sh 'docker build -t uzair102/u_repo:jma-2.0 .'
+                        sh "echo $PASS | docker login -u $USER --password-stdin"
+                        sh 'docker push uzair102/u_repo:jma-2.0'
+                    }
+                    
                 }
             }
         }
@@ -38,12 +34,15 @@ pipeline {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    def dockerCmd = "docker run -p8080:8080 -d ${IMAGE_NAME}"
+                    def dockerComposecmd = "docker-compose -f docker-compose.yaml up"
+                
                     sshagent(['ec2-server-key']) {
-                        sh "ssh -o StrictHostKeyChecking=no ec2-user@3.111.144.185 ${dockerCmd}"
+                        sh "scp docker-compose.yaml ec2-user@3.111.144.185"
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@3.111.144.185 ${dockerComposecmd}"
                     }
                 }
             }
         }
     }
 }
+
