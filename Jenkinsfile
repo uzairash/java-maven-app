@@ -1,65 +1,36 @@
 #!/usr/bin/env groovy
-def gv 
+
 
 pipeline {
-    
     agent any
-    tools {
-        maven 'maven-3.9'
-    }
+
     stages {
-
-        stage('init') {
+        stage('build app') {
             steps {
-                script {
-                    echo "hello world Paji"
-                    gv = load "scripts.groovy"
-                }
-
-            }
-        }
-        stage('test') {
-            steps {
-                script {
-                    gv.test()
-                }
-
-            }
-        }
-        stage('build jar') {
-            when {
-                    expression {
-                        BRANCH_NAME == 'master'
-                    }
-                }
-            steps {
-                
-                script {
-                    gv.buildjar()
-                }
-
+               script {
+                  echo 'testing the application ...'
+                  
+               }
             }
         }
         stage('build image') {
-            when {
-                    expression {
-                        BRANCH_NAME == 'master'
-                    }
-                }
             steps {
-                
                 script {
-                    gv.buildImage()
-                    
+                   echo 'building the application...'
+                  
                 }
             }
         }
         stage('deploy') {
-            steps {
+            steps { 
                 script {
-                    gv.deploy()
+                    echo 'deploying docker image to EC2...'
+                    def dockerCmd = 'docker run -p3000:80 -d uzair102/u_repo:rna-1.0'
+                    sshagent(['ec2-server-key']) {
+                        sh "ssh -o StrictHostKeyChecking=no ec2-user@3.111.144.185 ${dockerCmd}"
+                    }
                 }
             }
         }
     }
-}
+} 
