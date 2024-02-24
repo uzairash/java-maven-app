@@ -22,9 +22,9 @@ pipeline {
                 script {
                     echo 'Building the docker image...'
                     withCredentials([usernamePassword(credentialsId: 'docker-hub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
-                        sh 'docker build -t uzair102/u_repo:jma-2.0 .'
+                        sh 'docker build -t uzair102/u_repo:jma-2.2 .'
                         sh "echo $PASS | docker login -u $USER --password-stdin"
-                        sh 'docker push uzair102/u_repo:jma-2.0'
+                        sh 'docker push uzair102/u_repo:jma-2.2'
                     }
                 }
             }
@@ -33,7 +33,7 @@ pipeline {
             steps {
                 script {
                     echo 'deploying docker image to EC2...'
-                    def dockerComposecmd = "docker-compose -f docker-compose.yaml up"
+                    def dockerComposecmd = "docker-compose -f docker-compose.yaml up --detach"
                 
                     sshagent(['ec2-server-key']) {
                         sh "scp docker-compose.yaml ec2-user@3.111.144.185:/home/ec2-user"
